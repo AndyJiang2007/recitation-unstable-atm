@@ -49,6 +49,9 @@ TEST_CASE("Example: Create a new account", "[ex-1]") {
   REQUIRE(accounts.size() == 1);
   std::vector<std::string> empty;
   REQUIRE(transactions[{12345678, 1234}] == empty);
+
+  REQUIRE_THROWS_AS(atm.RegisterAccount(12345678, 1234, "Sam Sepiol", 3000.30),
+                    std::invalid_argument);
 }
 
 TEST_CASE("Example: Simple widthdraw", "[ex-2]") {
@@ -57,11 +60,28 @@ TEST_CASE("Example: Simple widthdraw", "[ex-2]") {
   atm.WithdrawCash(12345678, 1234, 20);
   auto accounts = atm.GetAccounts();
   Account sam_account = accounts[{12345678, 1234}];
-
   REQUIRE(sam_account.balance == 280.30);
+  REQUIRE_THROWS_AS(atm.WithdrawCash(00000, 0000, 20), std ::invalid_argument);
+  REQUIRE_THROWS_AS(atm.WithdrawCash(12345678, 1234, -20.0),
+                    std::invalid_argument);
+  REQUIRE_THROWS_AS(atm.WithdrawCash(12345678, 1234, 280.31),
+                    std::runtime_error);
 }
 
-TEST_CASE("Example: Print Prompt Ledger", "[ex-3]") {
+TEST_CASE("Example: Deposit cash", "[ex-3]") {
+  Atm atm;
+  atm.RegisterAccount(12345678, 1234, "Sam Sepiol", 0);
+  atm.WithdrawCash(12345678, 1234, 20);
+  auto accounts = atm.GetAccounts();
+  Account sam_account = accounts[{12345678, 1234}];
+  atm.DepositCash(12345678, 1234, 999999999);
+  REQUIRE(sam_account.balance == 999999999);
+  REQUIRE_THROWS_AS(atm.DepositCash(00000, 0000, 0000), std::invalid_argument);
+  REQUIRE_THROWS_AS(atm.DepositCash(12345678, 1234, -10.0),
+                    std::invalid_argument);
+}
+
+TEST_CASE("Example: Print Prompt Ledger", "[ex-4]") {
   Atm atm;
   atm.RegisterAccount(12345678, 1234, "Sam Sepiol", 300.30);
   auto& transactions = atm.GetTransactions();
@@ -73,4 +93,6 @@ TEST_CASE("Example: Print Prompt Ledger", "[ex-3]") {
       "Deposit - Amount: $32000.00, Updated Balance: $72099.90");
   atm.PrintLedger("./prompt.txt", 12345678, 1234);
   REQUIRE(CompareFiles("./ex-1.txt", "./prompt.txt"));
+  REQUIRE_THROWS_AS(atm.PrintLedger("./prompt.txt", 00000000, 0000),
+                    std::invalid_argument);
 }
