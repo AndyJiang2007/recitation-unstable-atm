@@ -71,7 +71,6 @@ TEST_CASE("Example: Simple widthdraw", "[ex-2]") {
 TEST_CASE("Example: Deposit cash", "[ex-3]") {
   Atm atm;
   atm.RegisterAccount(12345678, 1234, "Sam Sepiol", 0);
-  atm.WithdrawCash(12345678, 1234, 20);
   auto accounts = atm.GetAccounts();
   Account sam_account = accounts[{12345678, 1234}];
   atm.DepositCash(12345678, 1234, 999999999);
